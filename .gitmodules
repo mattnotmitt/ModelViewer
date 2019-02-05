@@ -1,0 +1,3 @@
+[submodule "ModelLoader"]
+	path = ModelLoader
+	url = git@github.com:artemisbot/ModelLoader.git
