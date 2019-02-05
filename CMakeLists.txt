@@ -8,7 +8,7 @@ foreach(p
   endif()
 endforeach()
 
-PROJECT( QtVTKExample )
+PROJECT( ModelViewer )
 
 # Make sure ModelLoader is downloaded
 find_package(Git QUIET)
@@ -56,11 +56,13 @@ qt5_add_resources( QRC_Srcs ${ICONS} )
 find_package( VTK REQUIRED )
 include( ${VTK_USE_FILE} )
 
+
 # Build ModelLoader
 add_subdirectory(ModelLoader)
+include_directories(inc src lib ModelLoader/inc ModelLoader/src)
 
 # Define the executable output and its sources
-add_executable( QtVTKExample MACOSX_BUNDLE
+add_executable( ModelViewer MACOSX_BUNDLE
 		src/main.cpp src/mainwindow.cpp
 		inc/mainwindow.h
         src/mainwindow.ui
@@ -69,10 +71,10 @@ add_executable( QtVTKExample MACOSX_BUNDLE
 		src/LegacyLoader.cpp inc/LegacyLoader.h)
 
 # Tell CMake that the executable depends on the Qt::Widget libraries.
-target_link_libraries( QtVTKExample Qt5::Widgets )
+target_link_libraries( ModelViewer Qt5::Widgets )
 
 # Tell CMake that the executable depends on the VTK libraries
-target_link_libraries( QtVTKExample ${VTK_LIBRARIES} )
+target_link_libraries( ModelViewer ${VTK_LIBRARIES} )
 
 # Tell CMake that the executable depends on ModelLoader
-target_link_libraries( QtVTKExample ModelLoader)
+target_link_libraries( ModelViewer ModelLoader)
