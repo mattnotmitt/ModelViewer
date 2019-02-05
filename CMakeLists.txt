@@ -10,6 +10,26 @@ endforeach()
 
 PROJECT( QtVTKExample )
 
+# Make sure ModelLoader is downloaded
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+	# Update submodules as needed
+	option(GIT_SUBMODULE "Check submodules during build" ON)
+	if(GIT_SUBMODULE)
+		message(STATUS "Submodule update")
+		execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+				RESULT_VARIABLE GIT_SUBMOD_RESULT)
+		if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+			message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+		endif()
+	endif()
+endif()
+
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ModelLoader/CMakeLists.txt")
+	message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+endif()
+
 # The CMake build process might generate some new files in the current
 # directory. This makes sure they can be found.
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -25,7 +45,7 @@ set( CMAKE_AUTOUIC ON )
 # lib directories, and the necessary static libraries for linking.
 find_package( Qt5Widgets )
 
-set( UIS mainwindow.ui )
+set( UIS src/mainwindow.ui)
 qt5_wrap_ui( UI_Srcs ${UIS} )
 
 set( ICONS Icons/icons.qrc )
@@ -36,17 +56,23 @@ qt5_add_resources( QRC_Srcs ${ICONS} )
 find_package( VTK REQUIRED )
 include( ${VTK_USE_FILE} )
 
+# Build ModelLoader
+add_subdirectory(ModelLoader)
+
 # Define the executable output and its sources
 add_executable( QtVTKExample MACOSX_BUNDLE
-				main.cpp mainwindow.cpp 
-				mainwindow.h 
-				mainwindow.ui
+		src/main.cpp src/mainwindow.cpp
+		inc/mainwindow.h
+        src/mainwindow.ui
 				${UI_Srcs}
 				${QRC_Srcs}
-				)
+		src/LegacyLoader.cpp inc/LegacyLoader.h)
 
 # Tell CMake that the executable depends on the Qt::Widget libraries.
 target_link_libraries( QtVTKExample Qt5::Widgets )
 
 # Tell CMake that the executable depends on the VTK libraries
 target_link_libraries( QtVTKExample ${VTK_LIBRARIES} )
+
+# Tell CMake that the executable depends on ModelLoader
+target_link_libraries( QtVTKExample ModelLoader)
