@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	// Now need to create a VTK render window and link it to the QtVTK widget
 	vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
 	ui->qvtkWidget->SetRenderWindow( renderWindow );			// note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
-	
+
 	// Now use the VTK libraries to render something. To start with you can copy-paste the cube example code, there are comments to show where the code must be modified.
 	//--------------------------------------------- Code From Example 1 --------------------------------------------------------------------------
 	// Create a cube using a vtkCubeSource
@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	actor->GetProperty()->EdgeVisibilityOn();
 
 	vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
+    std::array<unsigned char , 4> bkg{{51, 77, 102, 255}};
+    colors->SetColor("BkgColor", bkg.data());
 	actor->GetProperty()->SetColor( colors->GetColor3d("Red").GetData() );
 
 	// Create a renderer, and render window
@@ -51,14 +53,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	//renderWindowInteractor->SetRenderWindow( ui->vtkWidget->GetRenderWindow() );				
 
 	// Add the actor to the scene
-	renderer->AddActor(actor);
-	renderer->SetBackground( colors->GetColor3d("Black").GetData() );
+	LegacyLoader loader;
+	auto path = std::string("/home/matt/Projects/ModelViewer/ModelLoader/test/ExampleModel2.mod");
+	auto legacyActor = loader.loadModel(path);
+	renderer->AddActor(legacyActor);
+	//renderer->AddActor(actor);
+    std::cout << "Model loaded" << std::endl;
+    renderer->SetBackground(colors->GetColor3d("BkgColor").GetData());
 
 	// Setup the renderers's camera
 	renderer->ResetCamera();
-	renderer->GetActiveCamera()->Azimuth(30);
-	renderer->GetActiveCamera()->Elevation(30);
-	renderer->ResetCameraClippingRange();
+	//renderer->GetActiveCamera()->Azimuth(30);
+	//renderer->GetActiveCamera()->Elevation(30);
+	//renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
+	//renderer->GetActiveCamera()->SetPosition(1,1,1);
 
 	// Render and interact
 	//renderWindow->Render();					// ###### Not needed with Qt ######

@@ -1,6 +1,10 @@
 #pragma once
 
 #include <QMainWindow>
+#include <vtkLight.h>
+#include <vtkLightActor.h>
+
+#include "LegacyLoader.h"
 
 namespace Ui {
 class MainWindow;
