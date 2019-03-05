@@ -53,36 +53,41 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 void MainWindow::handleFileOpen() {
-    std::string filename =
-            QFileDialog::getOpenFileName(this,
-                                         tr("Open Image"), tr(""), tr("Model Files (*.mod *.stl)")).toStdString();
-    if(filename.find_last_of(".") != std::string::npos) {
-        std::string ext = filename.substr(filename.find_last_of(".") + 1);
-        if (ext == "stl") {
-            vtkSmartPointer<vtkSTLReader> stlReader =
-                    vtkSmartPointer<vtkSTLReader>::New();
-            stlReader->SetFileName(filename.c_str());
-            stlReader->Update();
+    try {
+        std::string filename = QFileDialog::getOpenFileName(this, tr("Open Image"), tr(""), tr("Model Files (*.mod *.stl)")).toStdString();
+        if (filename.find_last_of(".") != std::string::npos) {
+            std::string ext = filename.substr(filename.find_last_of(".") + 1);
+            if (ext == "stl") {
+                vtkSmartPointer<vtkSTLReader> stlReader =
+                        vtkSmartPointer<vtkSTLReader>::New();
+                stlReader->SetFileName(filename.c_str());
+                stlReader->Update();
 
-            // Visualize
-            vtkSmartPointer<vtkPolyDataMapper> stlMapper =
-                    vtkSmartPointer<vtkPolyDataMapper>::New();
-            stlMapper->SetInputConnection(stlReader->GetOutputPort());
+                // Visualize
+                vtkSmartPointer<vtkPolyDataMapper> stlMapper =
+                        vtkSmartPointer<vtkPolyDataMapper>::New();
+                stlMapper->SetInputConnection(stlReader->GetOutputPort());
 
-            vtkSmartPointer<vtkActor> stlActor =
-                    vtkSmartPointer<vtkActor>::New();
-            stlActor->SetMapper(stlMapper);
-            renderer->AddActor(stlActor);
-            renderer->ResetCamera();
-            renderer->GetRenderWindow()->Render();
-        } else if (ext == "mod") {
-            renderer->AddActor(loader.loadModel(filename));
-            renderer->ResetCamera();
-            renderer->GetRenderWindow()->Render();
+                vtkSmartPointer<vtkActor> stlActor =
+                        vtkSmartPointer<vtkActor>::New();
+                stlActor->SetMapper(stlMapper);
+                renderer->AddActor(stlActor);
+                renderer->ResetCamera();
+                renderer->GetRenderWindow()->Render();
+            } else if (ext == "mod") {
+                renderer->AddActor(loader.loadModel(filename));
+                renderer->ResetCamera();
+                renderer->GetRenderWindow()->Render();
+            }
+        } else {
+            QMessageBox msgbox;
+            msgbox.setText("This file does not have the correct extension. It must be one of .mod or .stl.");
+            msgbox.exec();
         }
-    } else {
+    } catch (std::runtime_error &err) {
+        QString msg = QString::fromUtf8(err.what());
         QMessageBox msgbox;
-        msgbox.setText("This file does not have the correct extension. It must be one of .mod or .stl.");
+        msgbox.setText(msg);
         msgbox.exec();
     }
 }

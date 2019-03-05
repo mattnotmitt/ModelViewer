@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <array>
 
 #include <QMainWindow>
@@ -26,21 +27,31 @@
 #include "LegacyLoader.h"
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+Q_OBJECT
 
 public slots:
+    /**
+     *
+     */
     void handleFileOpen();
 
 public:
+    /**
+     * Loads Window &
+     * @param parent
+     */
     explicit MainWindow(QWidget *parent = 0);
+
     ~MainWindow();
 
 private:
+    /**
+     *
+     */
     Ui::MainWindow *ui;
     LegacyLoader loader;
     vtkSmartPointer<vtkRenderer> renderer;
