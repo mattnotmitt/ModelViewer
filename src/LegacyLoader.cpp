@@ -46,7 +46,6 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
     }
 
     uGrid->GetCellData()->SetScalars(cellData);
-    std::cout << *(cellData->GetTuple(1)) << std::endl;
 
     // Create the points.
     vtkSmartPointer<vtkPoints> points =
@@ -71,12 +70,30 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
 
 vtkSmartPointer<vtkPyramid> LegacyLoader::loadPyramid(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {
     // TODO: Implement pyramid loader
-    return vtkSmartPointer<vtkPyramid>::New();
+	vtkSmartPointer<vtkPyramid> pyramid =
+		vtkSmartPointer<vtkPyramid>::New();
+
+	for (auto i = 0; i < CellVertices.size(); ++i)
+	{
+		auto vertex = *CellVertices[i];
+		pyramid->GetPointIds()->SetId(i, vertex.getIndex());
+	}
+
+    return pyramid;
 }
 
 vtkSmartPointer<vtkTetra> LegacyLoader::loadTetrahedron(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {
     // TODO: Implement tetrahedron loader
-    return vtkSmartPointer<vtkTetra>::New();
+	vtkSmartPointer<vtkTetra> tetra =
+		vtkSmartPointer<vtkTetra>::New();
+
+	for (auto i = 0; i < CellVertices.size(); ++i)
+	{
+		auto vertex = *CellVertices[i];
+		tetra->GetPointIds()->SetId(i, vertex.getIndex());
+	}
+	return tetra;
+
 }
 
 vtkSmartPointer<vtkHexahedron> LegacyLoader::loadHexahedron(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {
