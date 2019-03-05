@@ -1,8 +1,11 @@
 #pragma once
 
+#include <array>
+
 #include <QMainWindow>
 #include <QFileDialog>
 #include <QMessageBox>
+
 #include <vtkSmartPointer.h>
 #include <vtkCubeSource.h>
 #include <vtkActor.h>

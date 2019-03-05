@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 void MainWindow::handleFileOpen() {
     std::string filename =
             QFileDialog::getOpenFileName(this,
-                                         tr("Open Image"), tr("Model Files (*.mod *.stl)")).toStdString();
+                                         tr("Open Image"), tr(""), tr("Model Files (*.mod *.stl)")).toStdString();
     if(filename.find_last_of(".") != std::string::npos) {
         std::string ext = filename.substr(filename.find_last_of(".") + 1);
         if (ext == "stl") {
