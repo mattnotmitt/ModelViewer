@@ -13,14 +13,7 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
     auto legacyCells = LegacyModel.getCells();
     auto legacyCellsSize = (vtkIdType) legacyCells.size();
     uGrid->Allocate(legacyCellsSize);
-    /*
-    ColourLUT->SetNumberOfTableValues(legacyCellsSize);
-    ColourLUT->Build();
-    auto cellData = vtkSmartPointer<vtkIntArray>::New();
-    for (int i = 0; i < legacyCellsSize; i++)
-    {
-        cellData->InsertNextValue(i);
-    }*/
+
     vtkSmartPointer<vtkUnsignedCharArray> cellData =
             vtkSmartPointer<vtkUnsignedCharArray>::New();
     cellData->SetNumberOfComponents(3);
@@ -30,19 +23,9 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
         auto cell = cellPair.second;
 
         const char* colourString = cell->getCellMaterial()->getColour().c_str();
-        std::cout << colourString << std::endl;
         auto colour = colorConverter((int) std::strtol(colourString, nullptr, 16));
-        //delete colourString;
-        //auto lut = ColourLUT;
-        //std::cout << cell->getIndex() << " raw: " << colour.r << ", " << colour.g << ", " << colour.b << std::endl;
         double colours[3] = {colour.r, colour.g, colour.b};
         cellData->InsertTuple(cell->getIndex(), colours);
-        /*
-        ColourLUT->SetTableValue(cell->getIndex(), colours);
-        double rgb[3];
-        ColourLUT->GetColor(cell->getIndex(), rgb);
-        std::cout << cell->getIndex() << " vtk: " << rgb[0] << ", " << rgb[1] << ", " << rgb[2] << std::endl;
-        */
 
         switch (cell->CellType) {
             case (Cell::Type::PYRAMID): {
@@ -61,19 +44,10 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
                 break;
         }
     }
-    /*
-    double rgb[3];
-    double rgb2[3];
-    ColourLUT->GetColor(0, rgb);
-    ColourLUT->GetColor(128, rgb2);
-    std::cout << rgb[0] << ", " << rgb[1] << ", " << rgb[2] << std::endl;
-    std::cout << rgb2[0] << ", " << rgb2[1] << ", " << rgb2[2] << std::endl;*/
 
     uGrid->GetCellData()->SetScalars(cellData);
     std::cout << *(cellData->GetTuple(1)) << std::endl;
-    //std::cout << *(uGrid->GetCellData()) << std::endl;
-    //std::cout << ColourLUT->GetNumberOfTableValues() << std::endl;
-    //std::cout << *ColourLUT << std::endl;
+
     // Create the points.
     vtkSmartPointer<vtkPoints> points =
             vtkSmartPointer<vtkPoints>::New();
@@ -82,21 +56,12 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
         points->InsertPoint(point.getIndex(), point.getX(), point.getY(), point.getZ());
     }
     uGrid->SetPoints(points);
+
     // Visualize.
     vtkSmartPointer<vtkDataSetMapper> mapper =
             vtkSmartPointer<vtkDataSetMapper>::New();
     mapper->SetInputData(uGrid);
     mapper->SetColorModeToDefault();
-    //mapper->SetLookupTable(ColourLUT);
-    //mapper->UseLookupTableScalarRangeOff();
-    //mapper->SetScalarModeToUseCellData();
-    /*
-    mapper->ScalarVisibilityOn();
-    mapper->SetScalarModeToUseCellData();
-    mapper->UseLookupTableScalarRangeOn();
-    mapper->SetColorModeToMapScalars();
-    mapper->Update();*/
-
 
     vtkSmartPointer<vtkActor> actor =
             vtkSmartPointer<vtkActor>::New();
@@ -105,10 +70,12 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
 }
 
 vtkSmartPointer<vtkPyramid> LegacyLoader::loadPyramid(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {
+    // TODO: Implement pyramid loader
     return vtkSmartPointer<vtkPyramid>::New();
 }
 
 vtkSmartPointer<vtkTetra> LegacyLoader::loadTetrahedron(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {
+    // TODO: Implement tetrahedron loader
     return vtkSmartPointer<vtkTetra>::New();
 }
 
