@@ -28,6 +28,7 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
 
         double* worldPosition = picker->GetPickPosition();
         std::cout << "Cell id is: " << picker->GetCellId() << std::endl;
+        std::cout << "Actor is: " << picker->GetActor() << std::endl;
 
         if(picker->GetCellId() != -1)
         {
@@ -64,13 +65,34 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
                       << " points in the selection." << std::endl;
             std::cout << "There are " << selected->GetNumberOfCells()
                       << " cells in the selection." << std::endl;
+            vtkSmartPointer<vtkPropPicker>  picker =
+                    vtkSmartPointer<vtkPropPicker>::New();
+            picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
+
+            // If we picked something before, reset its property
+            if (this->LastPickedActor)
+            {
+                this->LastPickedActor->GetProperty()->DeepCopy(this->LastPickedProperty);
+            }
+            this->LastPickedActor = picker->GetActor();
+            if (this->LastPickedActor) {
+                // Save the property of the picked actor so that we can
+                // restore it next time
+                this->LastPickedProperty->DeepCopy(this->LastPickedActor->GetProperty());
+                // Highlight the picked actor by changing its properties
+                /*this->LastPickedActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+                this->LastPickedActor->GetProperty()->SetDiffuse(1.0);
+                this->LastPickedActor->GetProperty()->SetSpecular(0.0);*/
+            }
+
+
             /*selectedMapper->SetInputData(selected);
             selectedActor->SetMapper(selectedMapper);
             selectedActor->GetProperty()->EdgeVisibilityOn();
             selectedActor->GetProperty()->SetEdgeColor(1,0,0);
-            selectedActor->GetProperty()->SetLineWidth(3);*/
+            selectedActor->GetProperty()->SetLineWidth(3);
 
-            this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(selectedActor);
+            this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(selectedActor);*/
         }
 
         // Forward events
@@ -80,6 +102,10 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
     vtkSmartPointer<vtkPolyData> Data;
     vtkSmartPointer<vtkDataSetMapper> selectedMapper;
     vtkSmartPointer<vtkActor> selectedActor;
+
+    private:
+    vtkActor    *LastPickedActor;
+    vtkProperty *LastPickedProperty;
 };
 
 vtkStandardNewMacro(MouseInteractorStyle);

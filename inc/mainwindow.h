@@ -22,6 +22,7 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkPropPicker.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
@@ -32,7 +33,6 @@
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
 #include <vtkTriangleFilter.h>
-
 
 #include "LegacyLoader.h"
 
