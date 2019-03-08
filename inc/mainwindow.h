@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QVTKInteractor.h>
+#include <QIcon>
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
