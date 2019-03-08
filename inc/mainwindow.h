@@ -1,28 +1,38 @@
 #pragma once
 
-#include <stdexcept>
 #include <array>
+#include <stdexcept>
 
-#include <QMainWindow>
 #include <QFileDialog>
+#include <QMainWindow>
 #include <QMessageBox>
+#include <QVTKInteractor.h>
 
-#include <vtkSmartPointer.h>
-#include <vtkCubeSource.h>
 #include <vtkActor.h>
-#include <vtkProperty.h>
 #include <vtkCamera.h>
-#include <vtkPolyData.h>
+#include <vtkCellPicker.h>
+#include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkSTLReader.h>
-#include <vtkSTLWriter.h>
-#include <vtkPolyDataMapper.h>
+#include <vtkExtractSelection.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkNamedColors.h>
 #include <vtkNew.h>
-#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPlaneSource.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSelection.h>
+#include <vtkSelectionNode.h>
+#include <vtkSmartPointer.h>
+#include <vtkSTLReader.h>
+#include <vtkSTLWriter.h>
+#include <vtkTriangleFilter.h>
+
 
 #include "LegacyLoader.h"
 
@@ -47,6 +57,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
 
     ~MainWindow();
+    QVTKInteractor* GetInteractor();
 
 private:
     /**
@@ -56,3 +67,4 @@ private:
     LegacyLoader loader;
     vtkSmartPointer<vtkRenderer> renderer;
 };
+

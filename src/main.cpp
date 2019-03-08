@@ -3,7 +3,7 @@
 #include <QSurfaceFormat>
 #include <QVTKOpenGLWidget.h>
 
-#include "inc/mainwindow.h"
+#include "mainwindow.h"
 
 int main( int argc, char** argv )
 {

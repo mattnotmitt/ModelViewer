@@ -1,20 +1,114 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// Handle mouse events
+class MouseInteractorStyle : public vtkInteractorStyleTrackballCamera
+{
+public:
+    static MouseInteractorStyle* New();
+
+    MouseInteractorStyle(){
+        selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+        selectedActor = vtkSmartPointer<vtkActor>::New();
+    }
+
+vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
+
+    virtual void OnLeftButtonDown()
+    {
+        // Get the location of the click (in window coordinates)
+        int* pos = this->GetInteractor()->GetEventPosition();
+
+        vtkSmartPointer<vtkCellPicker> picker =
+                vtkSmartPointer<vtkCellPicker>::New();
+        picker->SetTolerance(0.1);
+
+        // Pick from this location.
+        picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
+
+        double* worldPosition = picker->GetPickPosition();
+        std::cout << "Cell id is: " << picker->GetCellId() << std::endl;
+
+        if(picker->GetCellId() != -1)
+        {
+            std::cout << "Pick position is: " << worldPosition[0] << " " << worldPosition[1]
+                      << " " << worldPosition[2] << endl;
+
+            vtkSmartPointer<vtkIdTypeArray> ids =
+                    vtkSmartPointer<vtkIdTypeArray>::New();
+            ids->SetNumberOfComponents(1);
+            ids->InsertNextValue(picker->GetCellId());
+
+            vtkSmartPointer<vtkSelectionNode> selectionNode =
+                    vtkSmartPointer<vtkSelectionNode>::New();
+            selectionNode->SetFieldType(vtkSelectionNode::CELL);
+            selectionNode->SetContentType(vtkSelectionNode::INDICES);
+            selectionNode->SetSelectionList(ids);
+
+            vtkSmartPointer<vtkSelection> selection =
+                    vtkSmartPointer<vtkSelection>::New();
+            selection->AddNode(selectionNode);
+
+            vtkSmartPointer<vtkExtractSelection> extractSelection =
+                    vtkSmartPointer<vtkExtractSelection>::New();
+            extractSelection->SetInputData(0, this->Data);
+            extractSelection->SetInputData(1, selection);
+            extractSelection->Update();
+
+            // In selection
+            vtkSmartPointer<vtkUnstructuredGrid> selected =
+                    vtkSmartPointer<vtkUnstructuredGrid>::New();
+            selected->ShallowCopy(extractSelection->GetOutput());
+
+            std::cout << "There are " << selected->GetNumberOfPoints()
+                      << " points in the selection." << std::endl;
+            std::cout << "There are " << selected->GetNumberOfCells()
+                      << " cells in the selection." << std::endl;
+            /*selectedMapper->SetInputData(selected);
+            selectedActor->SetMapper(selectedMapper);
+            selectedActor->GetProperty()->EdgeVisibilityOn();
+            selectedActor->GetProperty()->SetEdgeColor(1,0,0);
+            selectedActor->GetProperty()->SetLineWidth(3);*/
+
+            this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(selectedActor);
+        }
+
+        // Forward events
+        vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+    }
+
+    vtkSmartPointer<vtkPolyData> Data;
+    vtkSmartPointer<vtkDataSetMapper> selectedMapper;
+    vtkSmartPointer<vtkActor> selectedActor;
+};
+
+vtkStandardNewMacro(MouseInteractorStyle);
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
-    // standard call to setup Qt UI (same as previously)
-    renderer = vtkSmartPointer<vtkRenderer>::New();
     ui->setupUi(this);
+
+    // Standard call to setup Qt UI (same as previously)
+    renderer = vtkSmartPointer<vtkRenderer>::New();
+
+    // Setup plane source
+    vtkSmartPointer<vtkPlaneSource> planeSource =
+            vtkSmartPointer<vtkPlaneSource>::New();
+    planeSource->Update();
+
+    // Setup Triangle filter
+    vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+            vtkSmartPointer<vtkTriangleFilter>::New();
+    triangleFilter->SetInputConnection(planeSource->GetOutputPort());
+    triangleFilter->Update();
+
 
     connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::handleFileOpen);
 
-    // Now need to create a VTK render window and link it to the QtVTK widget
+    // Create a VTK render window and link it to the QtVTK widget
     vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
     ui->qvtkWidget->SetRenderWindow(
             renderWindow);            // note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
 
-    // Now use the VTK libraries to render something. To start with you can copy-paste the cube example code, there are comments to show where the code must be modified.
-    //--------------------------------------------- Code From Example 1 --------------------------------------------------------------------------
     // Create a cube using a vtkCubeSource
     vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
@@ -33,24 +127,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     actor->GetProperty()->SetColor(colors->GetColor3d("Red").GetData());
 
     // Create a renderer, and render window
-    //vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();		// ###### We've already created the renderWindow this time ######
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(
-            renderer);                                    // ###### ask the QtVTKOpenGLWidget for its renderWindow ######
+            renderer);
+    vtkSmartPointer<QVTKInteractor> qvtkInteractor = vtkSmartPointer<QVTKInteractor>::New();
+    qvtkInteractor->SetRenderWindow(renderer->GetRenderWindow());
+    qvtkInteractor->Initialize();
 
-    // Link a renderWindowInteractor to the renderer (this allows you to capture mouse movements etc)  ###### Not needed with Qt ######
-    //vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    //renderWindowInteractor->SetRenderWindow( ui->vtkWidget->GetRenderWindow() );
+    // Set the custom stype to use for interaction.
+    vtkSmartPointer<MouseInteractorStyle> style =
+            vtkSmartPointer<MouseInteractorStyle>::New();
+    style->SetDefaultRenderer(renderer);
+    style->Data = triangleFilter->GetOutput();
 
-    // Add the actor to the scene
+    qvtkInteractor->SetInteractorStyle(style);
 
-    //renderer->AddActor(legacyActor2);
-    //renderer->AddActor(actor);
     renderer->SetBackground(colors->GetColor3d("BkgColor").GetData());
 
     // Setup the renderers's camera
     renderer->ResetCamera();
-    //--------------------------------------------- /Code From Example 1 -------------------------------------------------------------------------*/
-}
+    }
 
 void MainWindow::handleFileOpen() {
     try {
@@ -92,6 +187,12 @@ void MainWindow::handleFileOpen() {
     }
 }
 
+QVTKInteractor* MainWindow::GetInteractor(){
+    return QVTKInteractor::SafeDownCast(renderer->GetRenderWindow()->GetInteractor());
+}
+
 MainWindow::~MainWindow() {
     delete ui;
 }
+
+
