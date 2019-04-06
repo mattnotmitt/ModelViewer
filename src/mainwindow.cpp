@@ -69,30 +69,13 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
                     vtkSmartPointer<vtkPropPicker>::New();
             picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
 
-            // If we picked something before, reset its property
-            if (this->LastPickedActor)
-            {
-                this->LastPickedActor->GetProperty()->DeepCopy(this->LastPickedProperty);
-            }
-            this->LastPickedActor = picker->GetActor();
-            if (this->LastPickedActor) {
-                // Save the property of the picked actor so that we can
-                // restore it next time
-                this->LastPickedProperty->DeepCopy(this->LastPickedActor->GetProperty());
-                // Highlight the picked actor by changing its properties
-                /*this->LastPickedActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-                this->LastPickedActor->GetProperty()->SetDiffuse(1.0);
-                this->LastPickedActor->GetProperty()->SetSpecular(0.0);*/
-            }
-
-
-            /*selectedMapper->SetInputData(selected);
+            selectedMapper->SetInputData(selected);
             selectedActor->SetMapper(selectedMapper);
             selectedActor->GetProperty()->EdgeVisibilityOn();
             selectedActor->GetProperty()->SetEdgeColor(1,0,0);
             selectedActor->GetProperty()->SetLineWidth(3);
 
-            this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(selectedActor);*/
+            this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(selectedActor);
         }
 
         // Forward events
@@ -111,9 +94,10 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
 vtkStandardNewMacro(MouseInteractorStyle);
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+    QWidget::setWindowIcon( QIcon(":/Icons/modelViewer.ico"));
     ui->setupUi(this);
 
-    // Standard call to setup Qt UI (same as previously)
+    // Standard call to setup Qt UI (same as previously);
     renderer = vtkSmartPointer<vtkRenderer>::New();
 
     // Setup plane source
@@ -139,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
     // Create a mapper that will hold the cube's geometry in a format suitable for rendering
-    vtkSmartPointer<vtkDataSetMapper> mapper = vtkSmartPointer<vtkDataSetMapper>::New();
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(cubeSource->GetOutputPort());
 
     // Create an actor that is used to set the cube's properties for rendering and place it in the window

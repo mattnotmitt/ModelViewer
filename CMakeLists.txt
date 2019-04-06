@@ -53,7 +53,7 @@ qt5_add_resources( QRC_Srcs ${ICONS} )
 
 
 # Also link to VTK
-find_package( VTK 8.2.0 REQUIRED )
+find_package( VTK REQUIRED )
 include( ${VTK_USE_FILE} )
 
 
