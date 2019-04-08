@@ -65,7 +65,7 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
                       << " points in the selection." << std::endl;
             std::cout << "There are " << selected->GetNumberOfCells()
                       << " cells in the selection." << std::endl;
-            vtkSmartPointer<vtkPropPicker>  picker =
+            vtkSmartPointer<vtkPropPicker> picker =
                     vtkSmartPointer<vtkPropPicker>::New();
             picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
 
@@ -100,17 +100,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Standard call to setup Qt UI (same as previously);
     renderer = vtkSmartPointer<vtkRenderer>::New();
 
-    // Setup plane source
-    vtkSmartPointer<vtkPlaneSource> planeSource =
-            vtkSmartPointer<vtkPlaneSource>::New();
-    planeSource->Update();
-
-    // Setup Triangle filter
-    vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-            vtkSmartPointer<vtkTriangleFilter>::New();
-    triangleFilter->SetInputConnection(planeSource->GetOutputPort());
-    triangleFilter->Update();
-
 
     connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::handleFileOpen);
 
@@ -119,22 +108,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->qvtkWidget->SetRenderWindow(
             renderWindow);            // note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
 
-    // Create a cube using a vtkCubeSource
-    vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-
-    // Create a mapper that will hold the cube's geometry in a format suitable for rendering
-    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputConnection(cubeSource->GetOutputPort());
-
-    // Create an actor that is used to set the cube's properties for rendering and place it in the window
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    actor->GetProperty()->EdgeVisibilityOn();
 
     vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
     std::array<unsigned char, 4> bkg{{51, 77, 102, 255}};
     colors->SetColor("BkgColor", bkg.data());
-    actor->GetProperty()->SetColor(colors->GetColor3d("Red").GetData());
 
     // Create a renderer, and render window
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(
@@ -147,7 +124,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     vtkSmartPointer<MouseInteractorStyle> style =
             vtkSmartPointer<MouseInteractorStyle>::New();
     style->SetDefaultRenderer(renderer);
-    style->Data = triangleFilter->GetOutput();
 
     qvtkInteractor->SetInteractorStyle(style);
 
@@ -162,6 +138,7 @@ void MainWindow::handleFileOpen() {
         std::string filename = QFileDialog::getOpenFileName(this, tr("Open Image"), tr(""), tr("Model Files (*.mod *.stl)")).toStdString();
         if (filename.find_last_of(".") != std::string::npos) {
             std::string ext = filename.substr(filename.find_last_of(".") + 1);
+            vtkSmartPointer<vtkActor> actor;
             if (ext == "stl") {
                 vtkSmartPointer<vtkSTLReader> stlReader =
                         vtkSmartPointer<vtkSTLReader>::New();
@@ -173,17 +150,20 @@ void MainWindow::handleFileOpen() {
                         vtkSmartPointer<vtkPolyDataMapper>::New();
                 stlMapper->SetInputConnection(stlReader->GetOutputPort());
 
-                vtkSmartPointer<vtkActor> stlActor =
-                        vtkSmartPointer<vtkActor>::New();
-                stlActor->SetMapper(stlMapper);
-                renderer->AddActor(stlActor);
-                renderer->ResetCamera();
-                renderer->GetRenderWindow()->Render();
+                actor = vtkSmartPointer<vtkActor>::New();
+                actor->SetMapper(stlMapper);
             } else if (ext == "mod") {
-                renderer->AddActor(loader.loadModel(filename));
-                renderer->ResetCamera();
-                renderer->GetRenderWindow()->Render();
+                actor = loader.loadModel(filename);
+            } else {
+                QMessageBox msgbox;
+                msgbox.setText("This file does not have the correct extension. It must be one of .mod or .stl.");
+                msgbox.exec();
+                return;
             }
+            // TODO: Add the actor's data to vtkMergeCells
+            renderer->AddActor(actor);
+            renderer->ResetCamera();
+            renderer->GetRenderWindow()->Render();
         } else {
             QMessageBox msgbox;
             msgbox.setText("This file does not have the correct extension. It must be one of .mod or .stl.");
