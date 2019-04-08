@@ -21,7 +21,7 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
 
         vtkSmartPointer<vtkCellPicker> picker =
                 vtkSmartPointer<vtkCellPicker>::New();
-        picker->SetTolerance(0.1);
+        picker->SetTolerance(0.001);
 
         // Pick from this location.
         picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
@@ -125,6 +125,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             vtkSmartPointer<MouseInteractorStyle>::New();
     style->SetDefaultRenderer(renderer);
 
+    vtkSmartPointer<vtkGeometryFilter> extract = vtkSmartPointer<vtkGeometryFilter>::New();
+    extract->SetInputData(PickerGrid);
+    extract->Update();
+
+    style->Data = extract->GetOutput();
     qvtkInteractor->SetInteractorStyle(style);
 
     renderer->SetBackground(colors->GetColor3d("BkgColor").GetData());
@@ -161,6 +166,25 @@ void MainWindow::handleFileOpen() {
                 return;
             }
             // TODO: Add the actor's data to vtkMergeCells
+
+            auto PickerMerge = vtkSmartPointer<vtkMergeCells>::New();
+
+            auto CopyGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
+            CopyGrid->DeepCopy(PickerGrid);
+            PickerGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
+            PickerMerge->SetUnstructuredGrid(PickerGrid);
+
+            auto ActorData = actor->GetMapper()->GetInput();
+            PickerMerge->SetTotalNumberOfDataSets(2);
+            TotalCells += ActorData->GetNumberOfCells();
+            TotalPoints += ActorData->GetNumberOfPoints();
+            PickerMerge->SetTotalNumberOfCells(TotalCells);
+            PickerMerge->SetTotalNumberOfPoints(TotalPoints);
+            PickerMerge->MergeDataSet(ActorData);
+            PickerMerge->MergeDataSet(CopyGrid);
+            PickerMerge->Finish();
+
+
             renderer->AddActor(actor);
             renderer->ResetCamera();
             renderer->GetRenderWindow()->Render();

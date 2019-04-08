@@ -16,9 +16,11 @@
 #include <vtkDataSetMapper.h>
 #include <vtkExtractSelection.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkGeometryFilter.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkNamedColors.h>
 #include <vtkNew.h>
+#include <vtkMergeCells.h>
 #include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -59,6 +61,9 @@ public:
 
     ~MainWindow();
     QVTKInteractor* GetInteractor();
+    vtkSmartPointer<vtkUnstructuredGrid> PickerGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
+    int TotalCells = 0;
+    int TotalPoints = 0;
 
 private:
     /**
