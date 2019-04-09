@@ -22,6 +22,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkNamedColors.h>
 #include <vtkNew.h>
+#include <vtkGeometryFilter.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 
 #include "CurrentModel.h"
