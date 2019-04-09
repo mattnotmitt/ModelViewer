@@ -168,6 +168,7 @@ void MainWindow::handleFileOpen() {
                 auto shrink = currentModel.shrinkFilter;
                 shrink->SetInputData(stlReader->GetOutput());
                 shrink->SetShrinkFactor(1);
+                shrink->Update();
 
                 // Visualize
                 vtkSmartPointer<vtkPolyDataMapper> stlMapper =
@@ -189,9 +190,14 @@ void MainWindow::handleFileOpen() {
                 auto data = loader.loadModel(filename);
                 // Visualize.
 
+                vtkSmartPointer<vtkGeometryFilter> extract = vtkSmartPointer<vtkGeometryFilter>::New();
+                extract->SetInputData(data);
+                extract->Update();
+
                 auto shrink = currentModel.shrinkFilter;
-                shrink->SetInputData(data);
+                shrink->SetInputData(extract->GetOutput());
                 shrink->SetShrinkFactor(1);
+                shrink->Update();
 
                 vtkSmartPointer<vtkDataSetMapper> mapper =
                         vtkSmartPointer<vtkDataSetMapper>::New();

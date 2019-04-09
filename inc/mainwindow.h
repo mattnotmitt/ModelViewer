@@ -39,7 +39,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
+#include <vtkNew.h>
 #include <vtkTriangleFilter.h>
+#include <vtkNamedColors.h>
 
 #include "CurrentModel.h"
 #include "LegacyLoader.h"
