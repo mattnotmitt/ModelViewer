@@ -85,10 +85,6 @@ vtkTypeMacro(MouseInteractorStyle, vtkInteractorStyleTrackballCamera);
     vtkSmartPointer<vtkPolyData> Data;
     vtkSmartPointer<vtkDataSetMapper> selectedMapper;
     vtkSmartPointer<vtkActor> selectedActor;
-
-    private:
-    vtkActor    *LastPickedActor;
-    vtkProperty *LastPickedProperty;
 };
 
 vtkStandardNewMacro(MouseInteractorStyle);
@@ -97,11 +93,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QWidget::setWindowIcon( QIcon(":/Icons/modelViewer.ico"));
     ui->setupUi(this);
 
+
+    //Add CTRL+O shortcut for opening files
+    QAction *quickOpen = new QAction(this);
+    quickOpen->setShortcut(Qt::CTRL | Qt::Key_O);
+    connect(quickOpen, SIGNAL(triggered()), this, SLOT(handleFileOpen()));
+    this->addAction(quickOpen);
+
     // Standard call to setup Qt UI (same as previously);
     renderer = vtkSmartPointer<vtkRenderer>::New();
 
-
+    //connect slots
     connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::handleFileOpen);
+    /*connect(ui->actionFileSave, &QAction::triggered, this, &MainWindow::handleFileSave);
+    connect(ui->actionHelp, &QAction::triggered, this, &MainWindow::handleHelp);
+    connect(ui->actionPrint, &QAction::triggered, this, &MainWindow::handlePrint);*/
 
     // Create a VTK render window and link it to the QtVTK widget
     vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
@@ -140,7 +146,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 void MainWindow::handleFileOpen() {
     try {
-        std::string filename = QFileDialog::getOpenFileName(this, tr("Open Image"), tr(""), tr("Model Files (*.mod *.stl)")).toStdString();
+        std::string filename = QFileDialog::getOpenFileName(this, tr("Open Model"), tr(""), tr("Model Files (*.mod *.stl)")).toStdString();
         if (filename.find_last_of(".") != std::string::npos) {
             std::string ext = filename.substr(filename.find_last_of(".") + 1);
             vtkSmartPointer<vtkActor> actor;
@@ -200,6 +206,22 @@ void MainWindow::handleFileOpen() {
         msgbox.exec();
     }
 }
+
+void MainWindow::handleFileSave() {
+    vtkSmartPointer<vtkSTLWriter> stlWriter =
+            vtkSmartPointer<vtkSTLWriter>::New();
+    std::string filename = QFileDialog::getOpenFileName(this, tr("Save Model"), tr(""), tr("STL Files (*.stl)")).toStdString();
+    if (filename.substr(filename.find_last_of(".")) == ".stl") {}
+    else{
+        filename.append(".stl");
+    }
+
+    stlWriter->SetFileName(filename.c_str());
+    stlWriter->GetInput();
+    stlWriter->Write();
+}
+
+
 
 QVTKInteractor* MainWindow::GetInteractor(){
     return QVTKInteractor::SafeDownCast(renderer->GetRenderWindow()->GetInteractor());

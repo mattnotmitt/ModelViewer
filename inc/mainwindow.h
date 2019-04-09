@@ -3,11 +3,15 @@
 #include <array>
 #include <stdexcept>
 
+#include <QFile>
 #include <QFileDialog>
+#include <QIcon>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QResource>
+#include <QTextStream>
 #include <QVTKInteractor.h>
-#include <QIcon>
+
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -51,6 +55,9 @@ public slots:
      *
      */
     void handleFileOpen();
+    void handleFileSave();
+    /*void handleHelp();
+    void handlePrint();*/
 
 public:
     /**

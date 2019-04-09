@@ -10,6 +10,8 @@ endforeach()
 
 PROJECT( ModelViewer )
 
+add_definitions(-g3)
+
 # Make sure ModelLoader is downloaded
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
