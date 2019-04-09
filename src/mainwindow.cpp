@@ -114,6 +114,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->qvtkWidget->SetRenderWindow(
             renderWindow);            // note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
 
+    // Now use the VTK libraries to render something. To start with you can copy-paste the cube example code, there are comments to show where the code must be modified.
+    //--------------------------------------------- Code From Example 1 --------------------------------------------------------------------------
+    // Create a cube using a vtkCubeSource
+    vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+
+    // Create a mapper that will hold the cube's geometry in a format suitable for rendering
+    vtkSmartPointer<vtkDataSetMapper> mapper = vtkSmartPointer<vtkDataSetMapper>::New();
+    mapper->SetInputConnection(cubeSource->GetOutputPort());
+
+    // Create an actor that is used to set the cube's properties for rendering and place it in the window
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->EdgeVisibilityOn();
 
     vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
     std::array<unsigned char, 4> bkg{{51, 77, 102, 255}};
@@ -131,11 +144,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             vtkSmartPointer<MouseInteractorStyle>::New();
     style->SetDefaultRenderer(renderer);
 
-    vtkSmartPointer<vtkGeometryFilter> extract = vtkSmartPointer<vtkGeometryFilter>::New();
-    extract->SetInputData(PickerGrid);
-    extract->Update();
 
-    style->Data = extract->GetOutput();
     qvtkInteractor->SetInteractorStyle(style);
 
     renderer->SetBackground(colors->GetColor3d("BkgColor").GetData());
@@ -156,20 +165,50 @@ void MainWindow::handleFileOpen() {
                 stlReader->SetFileName(filename.c_str());
                 stlReader->Update();
 
+                auto shrink = currentModel.shrinkFilter;
+                shrink->SetInputData(stlReader->GetOutput());
+                shrink->SetShrinkFactor(1);
+
                 // Visualize
                 vtkSmartPointer<vtkPolyDataMapper> stlMapper =
                         vtkSmartPointer<vtkPolyDataMapper>::New();
-                stlMapper->SetInputConnection(stlReader->GetOutputPort());
+                stlMapper->SetInputData(shrink->GetOutput());
 
-                actor = vtkSmartPointer<vtkActor>::New();
-                actor->SetMapper(stlMapper);
+                vtkSmartPointer<vtkActor> stlActor =
+                        vtkSmartPointer<vtkActor>::New();
+                stlActor->SetMapper(stlMapper);
+
+                renderer->RemoveAllViewProps();
+                renderer->AddActor(stlActor);
+                renderer->ResetCamera();
+                renderer->GetRenderWindow()->Render();
+
+                currentModel.isSTL = true;
+                currentModel.currentActor = stlActor;
             } else if (ext == "mod") {
-                actor = loader.loadModel(filename);
-            } else {
-                QMessageBox msgbox;
-                msgbox.setText("This file does not have the correct extension. It must be one of .mod or .stl.");
-                msgbox.exec();
-                return;
+                auto data = loader.loadModel(filename);
+                // Visualize.
+
+                auto shrink = currentModel.shrinkFilter;
+                shrink->SetInputData(data);
+                shrink->SetShrinkFactor(1);
+
+                vtkSmartPointer<vtkDataSetMapper> mapper =
+                        vtkSmartPointer<vtkDataSetMapper>::New();
+                mapper->SetInputData(shrink->GetOutput());
+                mapper->SetColorModeToDefault();
+
+                vtkSmartPointer<vtkActor> actor =
+                        vtkSmartPointer<vtkActor>::New();
+                actor->SetMapper(mapper);
+
+                renderer->RemoveAllViewProps();
+                renderer->AddActor(actor);
+                renderer->ResetCamera();
+                renderer->GetRenderWindow()->Render();
+
+                currentModel.isSTL = false;
+                currentModel.currentActor = actor;
             }
             // TODO: Add the actor's data to vtkMergeCells
 
@@ -205,6 +244,24 @@ void MainWindow::handleFileOpen() {
         msgbox.setText(msg);
         msgbox.exec();
     }
+}
+
+void MainWindow::handleChangeColour() {
+    // TODO: Handle change current actor colour
+    auto actor = currentModel.currentActor;
+    bool isSTL = currentModel.isSTL;
+    return;
+}
+
+void MainWindow::handleShrinkActor() {
+    // TODO: Handle shrink filter
+    auto sf = currentModel.shrinkFilter;
+    return;
+}
+
+void MainWindow::handleChangeBkg() {
+    // TODO: Handle change background colour
+    return;
 }
 
 void MainWindow::handleFileSave() {

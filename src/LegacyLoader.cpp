@@ -4,7 +4,7 @@
 
 #include "LegacyLoader.h"
 
-vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
+vtkSmartPointer<vtkUnstructuredGrid> LegacyLoader::loadModel(std::string &path) {
     auto LegacyModel = Model(path);
     vtkSmartPointer<vtkLookupTable> ColourLUT =
             vtkSmartPointer<vtkLookupTable>::New();
@@ -56,16 +56,7 @@ vtkSmartPointer<vtkActor> LegacyLoader::loadModel(std::string &path) {
     }
     uGrid->SetPoints(points);
 
-    // Visualize.
-    vtkSmartPointer<vtkDataSetMapper> mapper =
-            vtkSmartPointer<vtkDataSetMapper>::New();
-    mapper->SetInputData(uGrid);
-    mapper->SetColorModeToDefault();
-
-    vtkSmartPointer<vtkActor> actor =
-            vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    return actor;
+    return uGrid;
 }
 
 vtkSmartPointer<vtkPyramid> LegacyLoader::loadPyramid(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {

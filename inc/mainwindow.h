@@ -41,6 +41,7 @@
 #include <vtkSTLWriter.h>
 #include <vtkTriangleFilter.h>
 
+#include "CurrentModel.h"
 #include "LegacyLoader.h"
 
 namespace Ui {
@@ -55,6 +56,9 @@ public slots:
      *
      */
     void handleFileOpen();
+    void handleChangeColour();
+    void handleShrinkActor();
+    void handleChangeBkg();
     void handleFileSave();
     /*void handleHelp();
     void handlePrint();*/
@@ -79,5 +83,6 @@ private:
     Ui::MainWindow *ui;
     LegacyLoader loader;
     vtkSmartPointer<vtkRenderer> renderer;
+    CurrentModel currentModel;
 };
 

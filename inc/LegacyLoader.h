@@ -47,7 +47,7 @@ private:
         return rgbColor;
     }
 public:
-    vtkSmartPointer<vtkActor> loadModel(std::string &path);
+    vtkSmartPointer<vtkUnstructuredGrid> loadModel(std::string &path);
     vtkSmartPointer<vtkPyramid> loadPyramid(const std::vector<std::shared_ptr<Vec3>> &CellVertices);
     vtkSmartPointer<vtkTetra> loadTetrahedron(const std::vector<std::shared_ptr<Vec3>> &CellVertices);
     vtkSmartPointer<vtkHexahedron> loadHexahedron(const std::vector<std::shared_ptr<Vec3>> &CellVertices);
