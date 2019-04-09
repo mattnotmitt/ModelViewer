@@ -68,7 +68,7 @@ add_executable( ModelViewer MACOSX_BUNDLE
         src/mainwindow.ui
 				${UI_Srcs}
 				${QRC_Srcs}
-		src/LegacyLoader.cpp inc/LegacyLoader.h)
+		src/LegacyLoader.cpp inc/LegacyLoader.h inc/CurrentModel.h)
 
 # Tell CMake that the executable depends on the Qt::Widget libraries.
 target_link_libraries( ModelViewer Qt5::Widgets )

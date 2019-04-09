@@ -24,6 +24,7 @@
 #include <vtkNew.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 
+#include "CurrentModel.h"
 #include "LegacyLoader.h"
 
 namespace Ui {
@@ -38,6 +39,9 @@ public slots:
      *
      */
     void handleFileOpen();
+    void handleChangeColour();
+    void handleShrinkActor();
+    void handleChangeBkg();
 
 public:
     /**
@@ -55,4 +59,5 @@ private:
     Ui::MainWindow *ui;
     LegacyLoader loader;
     vtkSmartPointer<vtkRenderer> renderer;
+    CurrentModel currentModel;
 };

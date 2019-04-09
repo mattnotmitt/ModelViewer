@@ -13,38 +13,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->qvtkWidget->SetRenderWindow(
             renderWindow);            // note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
 
-    // Now use the VTK libraries to render something. To start with you can copy-paste the cube example code, there are comments to show where the code must be modified.
-    //--------------------------------------------- Code From Example 1 --------------------------------------------------------------------------
-    // Create a cube using a vtkCubeSource
-    vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-
-    // Create a mapper that will hold the cube's geometry in a format suitable for rendering
-    vtkSmartPointer<vtkDataSetMapper> mapper = vtkSmartPointer<vtkDataSetMapper>::New();
-    mapper->SetInputConnection(cubeSource->GetOutputPort());
-
-    // Create an actor that is used to set the cube's properties for rendering and place it in the window
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    actor->GetProperty()->EdgeVisibilityOn();
-
     vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
     std::array<unsigned char, 4> bkg{{51, 77, 102, 255}};
     colors->SetColor("BkgColor", bkg.data());
-    actor->GetProperty()->SetColor(colors->GetColor3d("Red").GetData());
 
     // Create a renderer, and render window
     //vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();		// ###### We've already created the renderWindow this time ######
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(
-            renderer);                                    // ###### ask the QtVTKOpenGLWidget for its renderWindow ######
+            renderer);
 
-    // Link a renderWindowInteractor to the renderer (this allows you to capture mouse movements etc)  ###### Not needed with Qt ######
-    //vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    //renderWindowInteractor->SetRenderWindow( ui->vtkWidget->GetRenderWindow() );
-
-    // Add the actor to the scene
-
-    //renderer->AddActor(legacyActor2);
-    //renderer->AddActor(actor);
     renderer->SetBackground(colors->GetColor3d("BkgColor").GetData());
 
     // Setup the renderers's camera
@@ -63,21 +40,50 @@ void MainWindow::handleFileOpen() {
                 stlReader->SetFileName(filename.c_str());
                 stlReader->Update();
 
+                auto shrink = currentModel.shrinkFilter;
+                shrink->SetInputData(stlReader->GetOutput());
+                shrink->SetShrinkFactor(1);
+
                 // Visualize
                 vtkSmartPointer<vtkPolyDataMapper> stlMapper =
                         vtkSmartPointer<vtkPolyDataMapper>::New();
-                stlMapper->SetInputConnection(stlReader->GetOutputPort());
+                stlMapper->SetInputData(shrink->GetOutput());
 
                 vtkSmartPointer<vtkActor> stlActor =
                         vtkSmartPointer<vtkActor>::New();
                 stlActor->SetMapper(stlMapper);
+
+                renderer->RemoveAllViewProps();
                 renderer->AddActor(stlActor);
                 renderer->ResetCamera();
                 renderer->GetRenderWindow()->Render();
+
+                currentModel.isSTL = true;
+                currentModel.currentActor = stlActor;
             } else if (ext == "mod") {
-                renderer->AddActor(loader.loadModel(filename));
+                auto data = loader.loadModel(filename);
+                // Visualize.
+
+                auto shrink = currentModel.shrinkFilter;
+                shrink->SetInputData(data);
+                shrink->SetShrinkFactor(1);
+
+                vtkSmartPointer<vtkDataSetMapper> mapper =
+                        vtkSmartPointer<vtkDataSetMapper>::New();
+                mapper->SetInputData(shrink->GetOutput());
+                mapper->SetColorModeToDefault();
+
+                vtkSmartPointer<vtkActor> actor =
+                        vtkSmartPointer<vtkActor>::New();
+                actor->SetMapper(mapper);
+
+                renderer->RemoveAllViewProps();
+                renderer->AddActor(actor);
                 renderer->ResetCamera();
                 renderer->GetRenderWindow()->Render();
+
+                currentModel.isSTL = false;
+                currentModel.currentActor = actor;
             }
         } else {
             QMessageBox msgbox;
@@ -90,6 +96,24 @@ void MainWindow::handleFileOpen() {
         msgbox.setText(msg);
         msgbox.exec();
     }
+}
+
+void MainWindow::handleChangeColour() {
+    // TODO: Handle change current actor colour
+    auto actor = currentModel.currentActor;
+    bool isSTL = currentModel.isSTL;
+    return;
+}
+
+void MainWindow::handleShrinkActor() {
+    // TODO: Handle shrink filter
+    auto sf = currentModel.shrinkFilter;
+    return;
+}
+
+void MainWindow::handleChangeBkg() {
+    // TODO: Handle change background colour
+    return;
 }
 
 MainWindow::~MainWindow() {
