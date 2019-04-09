@@ -12,6 +12,7 @@ class CurrentModel {
 public:
     bool isSTL;
     vtkSmartPointer<vtkActor> currentActor;
+    vtkSmartPointer<vtkPolyData> currentData = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkShrinkPolyData> shrinkFilter = vtkSmartPointer<vtkShrinkPolyData>::New();
 };
 

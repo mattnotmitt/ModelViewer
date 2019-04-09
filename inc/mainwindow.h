@@ -46,6 +46,19 @@
 #include "CurrentModel.h"
 #include "LegacyLoader.h"
 
+class MouseInteractorStyle : public vtkInteractorStyleTrackballCamera {
+public:
+    MouseInteractorStyle();
+
+    static MouseInteractorStyle *New();
+
+    virtual void OnLeftButtonDown();
+
+    vtkSmartPointer<vtkPolyData> Data;
+    vtkSmartPointer<vtkDataSetMapper> selectedMapper;
+    vtkSmartPointer<vtkActor> selectedActor;
+};
+
 namespace Ui {
     class MainWindow;
 }
