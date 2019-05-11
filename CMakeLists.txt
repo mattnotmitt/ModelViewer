@@ -10,6 +10,8 @@ endforeach()
 
 PROJECT( ModelViewer )
 
+add_definitions(-g3)
+
 # Make sure ModelLoader is downloaded
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
@@ -53,7 +55,7 @@ qt5_add_resources( QRC_Srcs ${ICONS} )
 
 
 # Also link to VTK
-find_package( VTK 8.2.0 REQUIRED )
+find_package( VTK REQUIRED )
 include( ${VTK_USE_FILE} )
 
 

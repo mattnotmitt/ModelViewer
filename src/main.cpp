@@ -3,7 +3,7 @@
 #include <QSurfaceFormat>
 #include <QVTKOpenGLWidget.h>
 
-#include "inc/mainwindow.h"
+#include "mainwindow.h"
 
 int main( int argc, char** argv )
 {
@@ -11,6 +11,8 @@ int main( int argc, char** argv )
   QSurfaceFormat::setDefaultFormat( QVTKOpenGLWidget::defaultFormat() );
 
   QApplication a( argc, argv );
+
+  
 
   MainWindow window;
   window.show();

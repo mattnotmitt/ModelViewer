@@ -32,4 +32,7 @@
 
 # CMake Output
 cmake-build-debug/
+Power-shell-build/
 build/
+
+\.vs/
