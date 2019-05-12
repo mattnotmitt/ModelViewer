@@ -3,6 +3,7 @@
 #include <array>
 #include <stdexcept>
 
+#include <QColorDialog>
 #include <QFile>
 #include <QFileDialog>
 #include <QIcon>
@@ -45,7 +46,7 @@
 
 #include "CurrentModel.h"
 #include "LegacyLoader.h"
-
+/*
 class MouseInteractorStyle : public vtkInteractorStyleTrackballCamera {
 public:
     MouseInteractorStyle();
@@ -57,7 +58,7 @@ public:
     vtkSmartPointer<vtkPolyData> Data;
     vtkSmartPointer<vtkDataSetMapper> selectedMapper;
     vtkSmartPointer<vtkActor> selectedActor;
-};
+};*/
 
 namespace Ui {
     class MainWindow;
@@ -68,15 +69,31 @@ Q_OBJECT
 
 public slots:
     /**
-     *
+     * Handle slot triggered when file is to be opened
      */
     void handleFileOpen();
+    /**
+     * Handle slot triggered when STL actor colour is to be changed
+     */
     void handleChangeColour();
-    void handleShrinkActor();
+    /**
+     * Handle change in shrink factor slider
+     * @param value
+     */
+    void handleShrinkActor(int value);
+    /**
+     * Handle slow triggered when renderer background colour is to be changed
+     */
     void handleChangeBkg();
+    /**
+     * Handle slot triggered when file is to be saved
+     */
     void handleFileSave();
-    /*void handleHelp();
-    void handlePrint();*/
+    /**
+     * Handle
+     */
+    void handleCameraReset();
+    void handleFilterReset();
 
 public:
     /**
@@ -86,10 +103,11 @@ public:
     explicit MainWindow(QWidget *parent = 0);
 
     ~MainWindow();
-    QVTKInteractor* GetInteractor();
-    vtkSmartPointer<vtkUnstructuredGrid> PickerGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-    int TotalCells = 0;
-    int TotalPoints = 0;
+    //QVTKInteractor* GetInteractor();
+    //vtkSmartPointer<vtkUnstructuredGrid> PickerGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
+    //int TotalCells = 0;
+    //int TotalPoints = 0;
+    void updateActorStats();
 
 private:
     /**

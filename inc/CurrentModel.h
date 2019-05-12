@@ -4,9 +4,15 @@
 
 #pragma once
 
+#include <QColor>
+
 #include <vtkActor.h>
 #include <vtkSmartPointer.h>
 #include <vtkShrinkPolyData.h>
+
+#include <memory>
+
+#include "Model.h"
 
 class CurrentModel {
 public:
@@ -14,5 +20,7 @@ public:
     vtkSmartPointer<vtkActor> currentActor;
     vtkSmartPointer<vtkPolyData> currentData = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkShrinkPolyData> shrinkFilter = vtkSmartPointer<vtkShrinkPolyData>::New();
+    Model currentMetadata;
+    QColor color = QColor("#ffffff");
 };
 

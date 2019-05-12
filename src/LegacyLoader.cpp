@@ -4,13 +4,14 @@
 
 #include "LegacyLoader.h"
 
-vtkSmartPointer<vtkUnstructuredGrid> LegacyLoader::loadModel(std::string &path) {
-    auto LegacyModel = Model(path);
+ModelData LegacyLoader::loadModel(std::string &path) {
+    ModelData model;
+    model.modelData = Model(path);
     vtkSmartPointer<vtkLookupTable> ColourLUT =
             vtkSmartPointer<vtkLookupTable>::New();
     // Set the background color.
     auto uGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-    auto legacyCells = LegacyModel.getCells();
+    auto legacyCells = model.modelData.getCells();
     auto legacyCellsSize = (vtkIdType) legacyCells.size();
     uGrid->Allocate(legacyCellsSize);
 
@@ -50,13 +51,13 @@ vtkSmartPointer<vtkUnstructuredGrid> LegacyLoader::loadModel(std::string &path) 
     // Create the points.
     vtkSmartPointer<vtkPoints> points =
             vtkSmartPointer<vtkPoints>::New();
-    for (const auto& vertex: LegacyModel.getVertices()){ // Loop through vertices and save information about them to file
+    for (const auto& vertex: model.modelData.getVertices()){ // Loop through vertices and save information about them to file
         auto point = vertex.second;
         points->InsertPoint(point.getIndex(), point.getX(), point.getY(), point.getZ());
     }
     uGrid->SetPoints(points);
-
-    return uGrid;
+    model.loadedModel = uGrid;
+    return model;
 }
 
 vtkSmartPointer<vtkPyramid> LegacyLoader::loadPyramid(const std::vector<std::shared_ptr<Vec3>> &CellVertices) {

@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
+/* Disabled due to non-functionality
 MouseInteractorStyle::MouseInteractorStyle() {
     selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
     selectedActor = vtkSmartPointer<vtkActor>::New();
@@ -73,9 +73,9 @@ void MouseInteractorStyle::OnLeftButtonDown() {
 
     // Forward events
     vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-}
+}*/
 
-vtkStandardNewMacro(MouseInteractorStyle);
+//vtkStandardNewMacro(MouseInteractorStyle);
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     QWidget::setWindowIcon(QIcon(":/Icons/modelViewer.ico"));
@@ -83,36 +83,36 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
     //Add CTRL+O shortcut for opening files
-    QAction* quickOpen = new QAction(this);
+    auto quickOpen = new QAction(this);
     quickOpen->setShortcut(Qt::CTRL | Qt::Key_O);
     connect(quickOpen, SIGNAL(triggered()), this, SLOT(handleFileOpen()));
     this->addAction(quickOpen);
+
+    //Add CTRL+O shortcut for opening files
+    auto quickSave = new QAction(this);
+    quickSave->setShortcut(Qt::CTRL | Qt::Key_S);
+    connect(quickSave, SIGNAL(triggered()), this, SLOT(handleFileSave()));
+    this->addAction(quickSave);
 
     // Standard call to setup Qt UI (same as previously);
     renderer = vtkSmartPointer<vtkRenderer>::New();
 
     //connect slots
     connect(ui->actionFileOpen, &QAction::triggered, this, &MainWindow::handleFileOpen);
-    /*connect(ui->actionFileSave, &QAction::triggered, this, &MainWindow::handleFileSave);
-    connect(ui->actionHelp, &QAction::triggered, this, &MainWindow::handleHelp);
-    connect(ui->actionPrint, &QAction::triggered, this, &MainWindow::handlePrint);*/
+    connect(ui->actionFileSave, &QAction::triggered, this, &MainWindow::handleFileSave);
+    connect(ui->actionChangeColour, &QAction::triggered, this, &MainWindow::handleChangeColour);
+    connect(ui->actionChangeBkg, &QAction::triggered, this, &MainWindow::handleChangeBkg);
+    connect(ui->actionResetCamera, &QAction::triggered, this, &MainWindow::handleCameraReset);
+    connect(ui->actionResetFilters, &QAction::triggered, this, &MainWindow::handleFilterReset);
+
+    connect(ui->shrinkSlider, &QSlider::valueChanged, this, &MainWindow::handleShrinkActor);
+    connect(ui->modelColour, &QPushButton::clicked, this, &MainWindow::handleChangeColour);
+    connect(ui->bkgColour, &QPushButton::clicked, this, &MainWindow::handleChangeBkg);
 
     // Create a VTK render window and link it to the QtVTK widget
     vtkNew<vtkGenericOpenGLRenderWindow> renderWindow;
     ui->qvtkWidget->SetRenderWindow(
             renderWindow);            // note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
-
-    // Create a cube using a vtkCubeSource
-    vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-
-    // Create a mapper that will hold the cube's geometry in a format suitable for rendering
-    vtkSmartPointer<vtkDataSetMapper> mapper = vtkSmartPointer<vtkDataSetMapper>::New();
-    mapper->SetInputConnection(cubeSource->GetOutputPort());
-
-    // Create an actor that is used to set the cube's properties for rendering and place it in the window
-    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-    actor->SetMapper(mapper);
-    actor->GetProperty()->EdgeVisibilityOn();
 
     vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
     std::array<unsigned char, 4> bkg{{51, 77, 102, 255}};
@@ -121,16 +121,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Create a renderer, and render window
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(
             renderer);
+    /*
     vtkSmartPointer<QVTKInteractor> qvtkInteractor = vtkSmartPointer<QVTKInteractor>::New();
     qvtkInteractor->SetRenderWindow(renderer->GetRenderWindow());
     qvtkInteractor->Initialize();
-
     // Set the custom stype to use for interaction.
     vtkSmartPointer<MouseInteractorStyle> style =
             vtkSmartPointer<MouseInteractorStyle>::New();
     style->Data = currentModel.currentData;
     style->SetDefaultRenderer(renderer);
-    qvtkInteractor->SetInteractorStyle(style);
+    qvtkInteractor->SetInteractorStyle(style);*/
 
     renderer->SetBackground(colors->GetColor3d("BkgColor").GetData());
 
@@ -144,7 +144,6 @@ void MainWindow::handleFileOpen() {
                                                             tr("Model Files (*.mod *.stl)")).toStdString();
         if (filename.find_last_of(".") != std::string::npos) {
             std::string ext = filename.substr(filename.find_last_of(".") + 1);
-            vtkSmartPointer<vtkActor> actor;
             if (ext == "stl") {
                 vtkSmartPointer<vtkSTLReader> stlReader =
                         vtkSmartPointer<vtkSTLReader>::New();
@@ -177,8 +176,9 @@ void MainWindow::handleFileOpen() {
                 auto data = loader.loadModel(filename);
                 // Visualize.
 
-                vtkSmartPointer<vtkGeometryFilter> extract = vtkSmartPointer<vtkGeometryFilter>::New();
-                extract->SetInputData(data);
+                vtkSmartPointer<vtkGeometryFilter> extract =
+                        vtkSmartPointer<vtkGeometryFilter>::New();
+                extract->SetInputData(data.loadedModel);
                 extract->Update();
 
                 auto shrink = currentModel.shrinkFilter;
@@ -203,7 +203,13 @@ void MainWindow::handleFileOpen() {
                 currentModel.isSTL = false;
                 currentModel.currentData = shrink->GetOutput();
                 currentModel.currentActor = actor;
+                currentModel.currentMetadata = data.modelData;
             }
+            ui->actionFileSave->setEnabled(!currentModel.isSTL);
+            ui->actionChangeColour->setEnabled(currentModel.isSTL);
+            ui->modelColour->setEnabled(currentModel.isSTL);
+            ui->shrinkSlider->setEnabled(true);
+            updateActorStats();
 
         } else {
             QMessageBox msgbox;
@@ -219,38 +225,80 @@ void MainWindow::handleFileOpen() {
 }
 
 void MainWindow::handleChangeColour() {
-    // TODO: Handle change current actor colour
     auto actor = currentModel.currentActor;
-    bool isSTL = currentModel.isSTL;
+    auto currColor = actor->GetProperty()->GetColor();
+    currentModel.color = QColorDialog::getColor(QColor((int) currColor[0] * 255, (int) currColor[1] * 255, (int) currColor[2] * 255));
+    actor->GetProperty()->SetColor(currentModel.color.red() / 255.0, currentModel.color.green() / 255.0, currentModel.color.blue() / 255.0);
+    renderer->GetRenderWindow()->Render();
+    updateActorStats();
 }
 
-void MainWindow::handleShrinkActor() {
-    // TODO: Handle shrink filter
+void MainWindow::handleShrinkActor(int value) {
     auto sf = currentModel.shrinkFilter;
+    sf->SetShrinkFactor(((float) value) / 100.0);
+    sf->Update();
+    renderer->GetRenderWindow()->Render();
 }
 
 void MainWindow::handleChangeBkg() {
-    // TODO: Handle change background colour
+    auto currColor = renderer->GetBackground();
+    auto color = QColorDialog::getColor(QColor((int) (currColor[0] * 255), (int) (currColor[1] * 255), (int) (currColor[2] * 255)));
+    renderer->SetBackground(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0);
+    renderer->GetRenderWindow()->Render();
 }
 
 void MainWindow::handleFileSave() {
     vtkSmartPointer<vtkSTLWriter> stlWriter =
             vtkSmartPointer<vtkSTLWriter>::New();
-    std::string filename = QFileDialog::getOpenFileName(this, tr("Save Model"), tr(""),
+    std::string filename = QFileDialog::getSaveFileName(this, tr("Save Model"), tr(""),
                                                         tr("STL Files (*.stl)")).toStdString();
-    if (filename.substr(filename.find_last_of(".")) == ".stl") {}
-    else {
+    if (".stl" != filename.substr((filename.find_last_of('.') == std::string::npos) ? 0 : filename.find_last_of('.'))) {
         filename.append(".stl");
     }
 
     stlWriter->SetFileName(filename.c_str());
-    stlWriter->GetInput();
+    stlWriter->SetInputData(currentModel.currentData);
     stlWriter->Write();
 }
 
+void MainWindow::handleCameraReset () {
+    renderer->ResetCamera();
+}
 
+void MainWindow::handleFilterReset () {
+    currentModel.shrinkFilter->SetShrinkFactor(1);
+    currentModel.shrinkFilter->Update();
+    renderer->GetRenderWindow()->Render();
+}
+
+/*
 QVTKInteractor *MainWindow::GetInteractor() {
     return QVTKInteractor::SafeDownCast(renderer->GetRenderWindow()->GetInteractor());
+}*/
+
+void MainWindow::updateActorStats() {
+    auto table = ui->statsTable;
+    if (currentModel.isSTL) {
+        table->setRowCount(1);
+        table->setItem(0, 0, new QTableWidgetItem(tr("Colour")));
+        table->setItem(0, 1, new QTableWidgetItem(currentModel.color.name()));
+    } else {
+        auto cog = currentModel.currentMetadata.calcCentreOfGravity();
+        table->setRowCount(6);
+        table->setColumnCount(2);
+        table->setItem(0, 0, new QTableWidgetItem(tr("Cells")));
+        table->setItem(0, 1, new QTableWidgetItem(QString::number(currentModel.currentMetadata.getCells().size())));
+        table->setItem(1, 0, new QTableWidgetItem(tr("Centre of Gravity")));
+        table->setItem(1, 1, new QTableWidgetItem(QString::asprintf("[%.4f, %.4f, %.4f]", cog.getX(), cog.getY(), cog.getZ())));
+        table->setItem(2, 0, new QTableWidgetItem(tr("Colour")));
+        table->setItem(2, 1, new QTableWidgetItem(tr("Custom")));
+        table->setItem(3, 0, new QTableWidgetItem(tr("Vectors")));
+        table->setItem(3, 1, new QTableWidgetItem(QString::number(currentModel.currentMetadata.getVertices().size())));
+        table->setItem(4, 0, new QTableWidgetItem(tr("Volume")));
+        table->setItem(4, 1, new QTableWidgetItem(QString::number(currentModel.currentMetadata.calcVolume())));
+        table->setItem(5, 0, new QTableWidgetItem(tr("Weight")));
+        table->setItem(5, 1, new QTableWidgetItem(QString::number(currentModel.currentMetadata.calcWeight())));
+    }
 }
 
 MainWindow::~MainWindow() {
