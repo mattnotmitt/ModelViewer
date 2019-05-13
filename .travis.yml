@@ -1,0 +1,28 @@
+# .travis.yml
+sudo: false
+dist: xenial
+language: cpp
+# cmake and vtk are not friends so i'm not even gonna try
+#before_install:
+#  - sudo apt update
+#  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6B05F25D762E3157
+#  - sudo apt install -y doxygen qt5-default vtk6
+# Build your code
+addons:
+  apt:
+    packages:
+    - doxygen
+script:
+- mkdir build
+- doxygen Doxyfile
+- cd build
+- cmake ../ModelLoader # Only things worth testing are in ModelLoader
+- make ModelLoaderTest
+- ./ModelLoaderTest
+deploy:
+  provider: pages
+  skip_cleanup: true
+  local_dir: build/html
+  github_token: $GH_REPO_TOKEN
+  on:
+    branch: master

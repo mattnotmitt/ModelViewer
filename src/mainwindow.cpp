@@ -114,6 +114,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->qvtkWidget->SetRenderWindow(
             renderWindow);            // note that vtkWidget is the name I gave to my QtVTKOpenGLWidget in Qt creator
 
+    // Set background colour
     vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
     std::array<unsigned char, 4> bkg{{51, 77, 102, 255}};
     colors->SetColor("BkgColor", bkg.data());
