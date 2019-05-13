@@ -16,9 +16,9 @@ script:
 - mkdir build
 - doxygen Doxyfile
 - cd build
-- cmake ..
+- cmake ../ModelLoader # Only things worth testing are in ModelLoader
 - make ModelLoaderTest
-- make test
+- ./ModelLoaderTest
 deploy:
   provider: pages
   skip_cleanup: true
