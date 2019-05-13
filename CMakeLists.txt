@@ -82,3 +82,18 @@ target_link_libraries( ModelViewer ${VTK_LIBRARIES} )
 # Tell CMake that the executable depends on ModelLoader
 target_link_libraries( ModelViewer ModelLoader)
 add_test(ModelViewer ModelLoader/ModelLoaderTest)
+
+install(TARGETS ModelViewer
+RUNTIME DESTINATION bin
+LIBRARY DESTINATION lib
+ARCHIVE DESTINATION lib/static)
+
+# Make Package
+if(WIN32)
+	include (InstallRequiredSystemLibraries)
+	set(CPACK_GENERATOR "NSIS")
+else()
+	set(CPACK_GENERATOR "ZIP")
+endif()
+include(InstallRequiredSystemLibraries)
+include(CPack)
