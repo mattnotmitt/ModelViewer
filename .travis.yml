@@ -6,6 +6,7 @@ addons:
     packages:
     - doxygen
     - qt5-default
+    - libvtk7.1-qt
 # Build your code
 script:
 - mkdir build
