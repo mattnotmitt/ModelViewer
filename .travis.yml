@@ -1,12 +1,10 @@
 # .travis.yml
 sudo: false
 language: cpp
-addons:
-  apt:
-    packages:
-    - doxygen
-    - qt5-default
-    - libvtk7.1-qt
+before_install:
+  - sudo apt update
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6B05F25D762E3157
+  - sudo apt install -y doxygen qt5-default libvtk7-qt-dev
 # Build your code
 script:
 - mkdir build
