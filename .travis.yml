@@ -8,6 +8,10 @@ language: cpp
 #  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6B05F25D762E3157
 #  - sudo apt install -y doxygen qt5-default vtk6
 # Build your code
+addons:
+  apt:
+    packages:
+    - doxygen
 script:
 - mkdir build
 - doxygen Doxyfile
