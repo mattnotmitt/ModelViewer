@@ -9,6 +9,7 @@ foreach(p
 endforeach()
 
 PROJECT( ModelViewer )
+include(CTest)
 
 add_definitions(-g3)
 
@@ -80,3 +81,4 @@ target_link_libraries( ModelViewer ${VTK_LIBRARIES} )
 
 # Tell CMake that the executable depends on ModelLoader
 target_link_libraries( ModelViewer ModelLoader)
+add_test(ModelViewer ModelLoader/ModelLoaderTest)

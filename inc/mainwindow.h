@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * @file Main file of project, handles UI and calling other classes
+ */
+
 #include <array>
 #include <stdexcept>
 
@@ -90,14 +94,17 @@ public slots:
      */
     void handleFileSave();
     /**
-     * Handle
+     * Handle slot triggered when camera is reset
      */
     void handleCameraReset();
+    /**
+     * Handle slot triggered when filters reset
+     */
     void handleFilterReset();
 
 public:
     /**
-     * Loads Window &
+     * Loads Window & configures UI
      * @param parent
      */
     explicit MainWindow(QWidget *parent = 0);
@@ -107,6 +114,9 @@ public:
     //vtkSmartPointer<vtkUnstructuredGrid> PickerGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
     //int TotalCells = 0;
     //int TotalPoints = 0;
+    /**
+     * Update actor stats table
+     */
     void updateActorStats();
 
 private:
