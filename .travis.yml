@@ -1,12 +1,23 @@
 # .travis.yml
 sudo: false
 language: cpp
-branches:
-  except:
-    - gh-pages
+addons:
+  apt:
+    packages:
+    - doxygen
+    - qt5-default
 # Build your code
 script:
-- mkdir build && cd build
+- mkdir build
+- doxygen Doxyfile
+- cd build
 - cmake ..
 - make
 - make test
+deploy:
+  provider: pages
+  skip_cleanup: true
+  local_dir: build/html
+  github_token: $GH_REPO_TOKEN
+  on:
+    branch: master
