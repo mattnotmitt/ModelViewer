@@ -1,0 +1,12 @@
+# .travis.yml
+sudo: false
+language: cpp
+branches:
+  except:
+    - gh-pages
+# Build your code
+script:
+- mkdir build && cd build
+- cmake ..
+- make
+- make test
